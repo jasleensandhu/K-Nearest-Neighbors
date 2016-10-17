@@ -6,17 +6,20 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 public class Attributes {
-	static ArrayList<Float> min_attribute = null;
-	static ArrayList<Float> max_attribute = null;
-	static String[] attributeNames;
-	HashMap<String, Float> attributeValue = null;
-	public String className;
+	
+	static ArrayList<Float> min_attribute = null; //needed to normalize
+	static ArrayList<Float> max_attribute = null; //needed to normalize
+	static String[] attributeNames; //labels
+	
+	HashMap<String, Float> attributeValue = null; //main values
+
+	public String className; 
 
 	public Attributes(int size, String[] attributeNames) {
 
 		Attributes.attributeNames = attributeNames;
 
-		if (min_attribute == null && max_attribute == null) {
+		if (min_attribute == null || max_attribute == null) {
 			min_attribute = new ArrayList<Float>(size-1);
 			max_attribute = new ArrayList<Float>(size-1);
 
@@ -31,6 +34,7 @@ public class Attributes {
 	public void parseString(String line) {
 		String[] tokens = line.split(",");
 		int i = 0;
+		
 		for (i = 0; i < tokens.length - 1; i++) {
 			float val = Float.parseFloat(tokens[i]);
 			if (min_attribute.get(i) > val) {
@@ -70,6 +74,25 @@ public class Attributes {
 			System.out.println(attributeNames[i] + " -> Min=" + min_attribute.get(i) + ", Max->" + max_attribute.get(i));
 		}
 	}
+
+	
+	public DResult getEuclidian(Attributes attributes) {
+		DResult ans = new DResult();
+		float sum=0;
+		
+		for(int i=0;i<attributeValue.size();i++)
+		{
+			float x1 = attributeValue.get(attributeNames[i]);
+			float x2 = attributes.attributeValue.get(attributeNames[i]);	
+			sum += (x1-x2)*(x1-x2);
+		}
+		
+		ans.distance = (float)Math.sqrt(sum);
+		ans.classname = attributes.className;
+		
+		return ans;
+	}
+
 }
 
 

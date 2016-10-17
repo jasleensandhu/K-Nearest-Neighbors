@@ -11,19 +11,36 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+
+import org.xml.sax.HandlerBase;
 
 public class KNearest {
 	String line = "";
-	String ecoli = "C:\\UTA\\Fall2016\\Machine Learning\\Assn1\\ecoli.csv";
+	String filename ;
 	String csvSplitBy = ",";
-	static ArrayList<Attributes> attributeValueList = null;
-	ArrayList<Attributes[]> kFoldPartition;
+	int partitionSize;
+	
+	static ArrayList<Attributes> attributeValueList = null; //attribute values not needed
+	
+	ArrayList<Attributes[]> kFoldPartition; //partition need to check against trainingset
+	Attributes[] testingDataset; //training data set
+	
+	
+	
+	public KNearest(String filename,int psize) { 
+		partitionSize = psize;
+		this.filename = filename;
+	}
 
+	//reading from file
 	public void ReadDataset() {
 
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(ecoli));
+			BufferedReader br = new BufferedReader(new FileReader(this.filename));
 
 			// fetching the column name
 			line = br.readLine();
@@ -70,7 +87,7 @@ public class KNearest {
 	}
 
 	//kFCV implementation
-	public void KFoldCrossValidation(int partitionSize) {
+	public void KFoldCrossValidation() {
 
 		ArrayList<Attributes> tempAttributeValueList = new ArrayList<Attributes>(attributeValueList);
 		int rowPartition = (int) Math.ceil((attributeValueList.size() / partitionSize)) + 1;
@@ -125,10 +142,8 @@ public class KNearest {
 		System.out.println("+++++++++++++++++");
 	}
 
-
-
 	//getting the testing partition randomly from the normalized k partitions
-	public Attributes[] SetTestingDataset(int partitionSize) {
+	public void SetTestingDataset() {
 		int randNum = randInt(0, partitionSize-1);
 		Attributes[] dataset = kFoldPartition.get(randNum);
 		// Traversing the testing dataset
@@ -143,20 +158,94 @@ public class KNearest {
 			System.out.println();
 		}
 		kFoldPartition.remove(randNum); //remaining k-1 training partitions
-		return dataset;
+		testingDataset = dataset;
+	}
+	
+	public void closestEuclidian() // change name
+	{
+		int eq=0,total=0;
+		for (int i=0;i<testingDataset.length;i++)
+		{
+			
+			DResult[] arr = new DResult[partitionSize-1];
+			HashMap<String,CResult> di = new HashMap<String,CResult>();
+			
+			//getting 
+			for(int j=0;j<partitionSize-1;j++)
+			{
+				arr[j] = getNearestClass(testingDataset[i],kFoldPartition.get(j)); //change method calling below method
+			}
+			
+			Arrays.sort(arr);
+			
+			System.out.print("TestData - "+i+" - Real->"+testingDataset[i].className+" - Prediction->");
+			
+			for(DResult d: arr)
+			{
+				//System.out.println(d.classname +" -> "+d.distance);
+				if(di.containsKey(d.classname))
+				{
+					CResult cr=di.get(d.classname);
+					cr.count++;
+				}
+				else
+				{
+					CResult cr=new CResult();
+					
+					cr.cName = d.classname;
+					cr.count++;
+					cr.min = d.distance;
+					
+					di.put(cr.cName, cr);
+				}
+			}
+			
+			//System.out.println("------------------------------------------------------------------");
+			CResult pakkawala = null; 
+			
+			for (Map.Entry<String, CResult> entry : di.entrySet()) {
+			    String key = entry.getKey();
+			    CResult c = entry.getValue();
+			    
+			    //System.out.println(key +" -> "+ c.cName +" -> "+c.count);
+				
+			    
+			    if(pakkawala == null || pakkawala.count < c.count)
+			    {
+			    	pakkawala = c;
+			    }
+			    else if(pakkawala.count == c.count)
+			    {
+			    	if(c.min < pakkawala.min)
+			    		pakkawala = c;
+			    }
+			    
+			}
+			
+			System.out.println(pakkawala.cName);
+			if(pakkawala.cName.equals(testingDataset[i].className))
+			{
+				eq++;
+			}
+			total++;	
+		}
+		
+		System.out.println("Accuracy = "+((100*eq)/total)+"%");
 	}
 
-	public static void main(String[] args) throws FileNotFoundException {
-		//Get output in ConsoleOutput.txt file
-		PrintStream out = new PrintStream(new FileOutputStream("ConsoleOutput.txt")); 
-		System.setOut(out);
-
-		KNearest kFold = new KNearest();
-		kFold.ReadDataset();
-		int k = 10;
-		kFold.KFoldCrossValidation(k);
-		Attributes[] trainingDataset = kFold.SetTestingDataset(k);
-
+	private DResult getNearestClass(Attributes testData, Attributes[] trainingPartition) {
+		DResult ans = null; 
+		for(int i=0;i<trainingPartition.length;i++)
+		{
+			DResult temp = testData.getEuclidian(trainingPartition[i]);// change this
+			if(ans == null)
+				ans = temp;
+			else
+				ans = ans.compareTo(temp) < 0 ? ans : temp;
+		}
+		
+		return ans;
 	}
+
 }
 
