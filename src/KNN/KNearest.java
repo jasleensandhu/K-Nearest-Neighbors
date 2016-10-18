@@ -162,23 +162,73 @@ public class KNearest {
 		testingDataset = dataset;
 	}
 
+	public float[] getVarience(Attributes[] arr){
+		
+		if(arr.length < 1)
+			return null;
+					
+		int ats = arr[0].getAttributeSize();
+		float[] mean = new float[ats];
+		float[] ans = new float[ats];
+		
+		int count = 0;
+		
+		for(int j=0;j<ats;j++)
+		{
+			mean[j] = 0;
+			ans[j] = 0;
+		}
+		
+		for(int i=0;i<arr.length;i++)
+		{
+			for(int j=0;j<arr[i].getAttributeSize();j++)
+			{
+				mean[j] += arr[i].getValue(j);
+				count++;
+			}
+		}
+		
+		for(int j=0;j<ats;j++)
+		{
+			mean[j] = mean[j]/count;
+		}
+		
+		for(int i=0;i<arr.length;i++)
+		{
+			for(int j=0;j<arr[i].getAttributeSize();j++)
+			{
+				float x = arr[i].getValue(j)-mean[j];
+				ans[j] += (x*x);
+			}
+		}
+		
+		for(int j=0;j<ats;j++)
+		{
+			ans[j] = ans[j]/count;
+		}
+		
+		return ans;
+	}
+	
 	public void nearestDistance(int distCalculationChoice, int k) // change name
 	{
 		int eq=0,total=0;
-				
+		
+		float[] varience = getVarience(testingDataset);
+		
 		for (int i=0;i<testingDataset.length;i++)
 		{
 			int trainingSize = attributeValueList.size() - testingDataset.length;
 			ArrayList<DResult> trainingDataList = new ArrayList<DResult>(trainingSize); //this size is also contains the testing dataset
-			ArrayList<DResult> tempTrainingDataList = new ArrayList<>();
+			ArrayList<DResult> tempTrainingDataList = null;
 			
 			DResult[] arr = new DResult[partitionSize-1];
 			HashMap<String,CResult> di = new HashMap<String,CResult>();
-
+			
 			//getting 
 			for(int j=0;j<partitionSize-1;j++) //for every partition element
 			{
-				tempTrainingDataList = getNearestClass(testingDataset[i],kFoldPartition.get(j),distCalculationChoice);
+				tempTrainingDataList = getNearestClass(testingDataset[i],kFoldPartition.get(j),distCalculationChoice, varience);
 				trainingDataList.addAll(tempTrainingDataList);
 				tempTrainingDataList = null;
 			}
@@ -234,9 +284,10 @@ public class KNearest {
 		}
 
 		System.out.println("Accuracy = "+((100*eq)/total)+"%");
+		System.out.println("---------------------------------------------------------------------");
 	}
 
-	private ArrayList<DResult> getNearestClass(Attributes testData, Attributes[] trainingPartition,int distCalculationChoice) {
+	private ArrayList<DResult> getNearestClass(Attributes testData, Attributes[] trainingPartition,int distCalculationChoice, float[] varience) {
 		
 
 		ArrayList<DResult> testingDataList = new ArrayList<DResult>();
@@ -249,10 +300,10 @@ public class KNearest {
 				temp = testData.getPolynomialKernel(trainingPartition[i]);// change this
 					
 			}
-//			else if(distCalculationChoice==2)
-//			{
-//				temp = testData.getRadialKernel(trainingPartition[i]);
-//			}
+			else if(distCalculationChoice==2)
+			{
+				temp = testData.getRadialKernel(trainingPartition[i], varience);
+			}
 			else
 			{
 				temp = testData.getEuclidian(trainingPartition[i]);

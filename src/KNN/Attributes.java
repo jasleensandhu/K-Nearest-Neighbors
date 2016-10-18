@@ -15,6 +15,15 @@ public class Attributes {
 
 	public String className; 
 
+	public int getAttributeSize(){
+		return attributeValue.size();
+	}
+	
+	public float getValue(int i)
+	{
+		return attributeValue.get(attributeNames[i]);
+	}
+	
 	public Attributes(int size, String[] attributeNames) {
 
 		Attributes.attributeNames = attributeNames;
@@ -111,7 +120,39 @@ public class Attributes {
 		return ans;
 	}
 
-
+	public DResult getRadialKernel(Attributes attributes, float[] varience) {
+		DResult ans = new DResult();
+		float sum=0;
+		int count = 0;
+		float sumMean = 0;
+		float mean = 0;
+		for(int i=0;i<attributeValue.size();i++)
+		{
+			float x1 = attributeValue.get(attributeNames[i]);
+			float x2 = attributes.attributeValue.get(attributeNames[i]);	
+			//sum+= (x1*x1+1)-2*(x1*x2+1)+(x2*x2+1);
+		
+			sum += (x1-x2)*(x1-x2)/varience[i];
+			//sumMean+=x1;
+			//++count;
+			
+		}
+		
+//		mean = sumMean/count;
+//		float tempvariance = 0;
+//		for(int i=0;i<attributeValue.size();i++){
+//			float x1 = attributeValue.get(attributeNames[i]);
+//			tempvariance+=(x1-mean)*(x1-mean);			
+//		}
+//		float variance = 0; 
+//		variance = tempvariance/(count-1);
+//		System.out.println("varinace = "+ variance);
+		
+		ans.distance = (float)Math.exp(-sum);
+		ans.classname = attributes.className;
+		
+		return ans;
+	}
 
 
 }

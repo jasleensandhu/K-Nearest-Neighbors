@@ -12,7 +12,7 @@ public class KNNDriver {
 		PrintStream out = new PrintStream(new FileOutputStream("ConsoleOutput.txt")); 
 		System.setOut(out);
 
-		KNearest kFold = new KNearest("C:\\UTA\\Fall2016\\Machine Learning\\Assn2\\Ecoli.csv",10);
+		KNearest kFold = new KNearest("C:\\UTA\\Fall2016\\Machine Learning\\Assn2\\Yeast.csv",10);
 		
 		kFold.ReadDataset();
 		
@@ -21,9 +21,9 @@ public class KNNDriver {
 		kFold.KFoldCrossValidation();
 		kFold.SetTestingDataset();
 
-		kFold.nearestDistance(0,5); //calculate based on eucledian
-		kFold.nearestDistance(1,5); //calculate based on Polynomial Kernel
-		//kFold.closestEuclidian(2); //calculate based on Polynomial Kernel
+		kFold.nearestDistance(0,7); //calculate based on eucledian
+		kFold.nearestDistance(1,7); //calculate based on Polynomial Kernel
+		kFold.nearestDistance(2,7); //calculate based on Polynomial Kernel
 		
 		
 	
