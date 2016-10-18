@@ -21,7 +21,12 @@ public class KNNDriver {
 		kFold.KFoldCrossValidation();
 		kFold.SetTestingDataset();
 
-		kFold.closestEuclidian();
+		kFold.nearestDistance(0,5); //calculate based on eucledian
+		kFold.nearestDistance(1,5); //calculate based on Polynomial Kernel
+		//kFold.closestEuclidian(2); //calculate based on Polynomial Kernel
+		
+		
+	
 	}
 	
 }

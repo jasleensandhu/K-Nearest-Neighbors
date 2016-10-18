@@ -12,6 +12,8 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -23,14 +25,13 @@ public class KNearest {
 	String filename ;
 	String csvSplitBy = ",";
 	int partitionSize;
-	
-	static ArrayList<Attributes> attributeValueList = null; //attribute values not needed
-	
+
+	static ArrayList<Attributes> attributeValueList = null; //attribute values not needed	
 	ArrayList<Attributes[]> kFoldPartition; //partition need to check against trainingset
 	Attributes[] testingDataset; //training data set
-	
-	
-	
+
+
+
 	public KNearest(String filename,int psize) { 
 		partitionSize = psize;
 		this.filename = filename;
@@ -160,91 +161,107 @@ public class KNearest {
 		kFoldPartition.remove(randNum); //remaining k-1 training partitions
 		testingDataset = dataset;
 	}
-	
-	public void closestEuclidian() // change name
+
+	public void nearestDistance(int distCalculationChoice, int k) // change name
 	{
 		int eq=0,total=0;
+				
 		for (int i=0;i<testingDataset.length;i++)
 		{
+			int trainingSize = attributeValueList.size() - testingDataset.length;
+			ArrayList<DResult> trainingDataList = new ArrayList<DResult>(trainingSize); //this size is also contains the testing dataset
+			ArrayList<DResult> tempTrainingDataList = new ArrayList<>();
 			
 			DResult[] arr = new DResult[partitionSize-1];
 			HashMap<String,CResult> di = new HashMap<String,CResult>();
-			
+
 			//getting 
-			for(int j=0;j<partitionSize-1;j++)
+			for(int j=0;j<partitionSize-1;j++) //for every partition element
 			{
-				arr[j] = getNearestClass(testingDataset[i],kFoldPartition.get(j)); //change method calling below method
+				tempTrainingDataList = getNearestClass(testingDataset[i],kFoldPartition.get(j),distCalculationChoice);
+				trainingDataList.addAll(tempTrainingDataList);
+				tempTrainingDataList = null;
 			}
-			
-			Arrays.sort(arr);
+
+			Collections.sort(trainingDataList);
+//			System.out.println("========sorted list=========");
+//			for(DResult d : trainingDataList){
+//				System.out.println(d);
+//				
+//			}
 			
 			System.out.print("TestData - "+i+" - Real->"+testingDataset[i].className+" - Prediction->");
 			
-			for(DResult d: arr)
-			{
+			for(int l = 0; l<k; l++){
 				//System.out.println(d.classname +" -> "+d.distance);
-				if(di.containsKey(d.classname))
+				if(di.containsKey(trainingDataList.get(i).classname))
 				{
-					CResult cr=di.get(d.classname);
+					CResult cr=di.get(trainingDataList.get(i).classname);
 					cr.count++;
 				}
 				else
 				{
 					CResult cr=new CResult();
-					
-					cr.cName = d.classname;
+
+					cr.cName = trainingDataList.get(i).classname;
 					cr.count++;
-					cr.min = d.distance;
-					
+					cr.min = trainingDataList.get(i).distance;
+
 					di.put(cr.cName, cr);
+				}
+			}	
+			CResult finalResult = null; 
+			for (Map.Entry<String, CResult> entry : di.entrySet()) {
+				String key = entry.getKey();
+				CResult c = entry.getValue();
+
+				//System.out.println(key +" -> "+ c.cName +" -> "+c.count);
+
+				if(finalResult == null || finalResult.count < c.count)
+					finalResult = c;
+				else if(finalResult.count == c.count){
+					if(c.min < finalResult.min)
+						finalResult = c;
 				}
 			}
 			
-			//System.out.println("------------------------------------------------------------------");
-			CResult pakkawala = null; 
-			
-			for (Map.Entry<String, CResult> entry : di.entrySet()) {
-			    String key = entry.getKey();
-			    CResult c = entry.getValue();
-			    
-			    //System.out.println(key +" -> "+ c.cName +" -> "+c.count);
-				
-			    
-			    if(pakkawala == null || pakkawala.count < c.count)
-			    {
-			    	pakkawala = c;
-			    }
-			    else if(pakkawala.count == c.count)
-			    {
-			    	if(c.min < pakkawala.min)
-			    		pakkawala = c;
-			    }
-			    
-			}
-			
-			System.out.println(pakkawala.cName);
-			if(pakkawala.cName.equals(testingDataset[i].className))
+			System.out.println(finalResult.cName);
+			if(finalResult.cName.equals(testingDataset[i].className))
 			{
 				eq++;
 			}
-			total++;	
+			total++;
 		}
-		
+
 		System.out.println("Accuracy = "+((100*eq)/total)+"%");
 	}
 
-	private DResult getNearestClass(Attributes testData, Attributes[] trainingPartition) {
-		DResult ans = null; 
+	private ArrayList<DResult> getNearestClass(Attributes testData, Attributes[] trainingPartition,int distCalculationChoice) {
+		
+
+		ArrayList<DResult> testingDataList = new ArrayList<DResult>();
+		
 		for(int i=0;i<trainingPartition.length;i++)
 		{
-			DResult temp = testData.getEuclidian(trainingPartition[i]);// change this
-			if(ans == null)
-				ans = temp;
+			DResult temp=null;
+			if(distCalculationChoice==1)
+			{
+				temp = testData.getPolynomialKernel(trainingPartition[i]);// change this
+					
+			}
+			else if(distCalculationChoice==2)
+			{
+				temp = testData.getRadialKernel(trainingPartition[i]);
+			}
 			else
-				ans = ans.compareTo(temp) < 0 ? ans : temp;
+			{
+				temp = testData.getEuclidian(trainingPartition[i]);
+			}
+			
+			testingDataList.add(temp);
+
 		}
-		
-		return ans;
+		return testingDataList;
 	}
 
 }

@@ -80,10 +80,10 @@ public class Attributes {
 		DResult ans = new DResult();
 		float sum=0;
 		
-		for(int i=0;i<attributeValue.size();i++)
+		for(int i=0;i<this.attributeValue.size();i++)
 		{
-			float x1 = attributeValue.get(attributeNames[i]);
-			float x2 = attributes.attributeValue.get(attributeNames[i]);	
+			float x1 = this.attributeValue.get(attributeNames[i]); //test data element
+			float x2 = attributes.attributeValue.get(attributeNames[i]);	//training data element
 			sum += (x1-x2)*(x1-x2);
 		}
 		
@@ -92,6 +92,27 @@ public class Attributes {
 		
 		return ans;
 	}
+	
+	public DResult getPolynomialKernel(Attributes attributes) {
+		DResult ans = new DResult();
+		float sum=0;
+		
+		for(int i=0;i<attributeValue.size();i++)
+		{
+			float x1 = attributeValue.get(attributeNames[i]);
+			float x2 = attributes.attributeValue.get(attributeNames[i]);	
+			//sum+= (x1*x1+1)-2*(x1*x2+1)+(x2*x2+1);
+			//Kðx; yÞ¼ð1 þ hx; yiÞp
+			sum += x1*x2;
+		}
+		ans.distance = (float)(1+sum)*(1+sum)*(1+sum);
+		ans.classname = attributes.className;
+		
+		return ans;
+	}
+
+	
+
 
 }
 
