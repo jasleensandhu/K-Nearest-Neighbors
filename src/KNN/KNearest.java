@@ -249,10 +249,10 @@ public class KNearest {
 				temp = testData.getPolynomialKernel(trainingPartition[i]);// change this
 					
 			}
-			else if(distCalculationChoice==2)
-			{
-				temp = testData.getRadialKernel(trainingPartition[i]);
-			}
+//			else if(distCalculationChoice==2)
+//			{
+//				temp = testData.getRadialKernel(trainingPartition[i]);
+//			}
 			else
 			{
 				temp = testData.getEuclidian(trainingPartition[i]);
